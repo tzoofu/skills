@@ -1,0 +1,22 @@
+{
+  "name": "tzoof-skills",
+  "owner": {
+    "name": "Tzoof Hassidoff",
+    "email": "tzoof.hasidof@yum.com"
+  },
+  "metadata": {
+    "description": "Reusable agent skills for Claude Code and other AI agents",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "tzoof-skills",
+      "description": "Collection of reusable agent skills including session capture and workflow automation",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/capture-skill"
+      ]
+    }
+  ]
+}
