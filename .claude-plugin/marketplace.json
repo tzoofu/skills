@@ -10,7 +10,7 @@
   },
   "plugins": [
     {
-      "name": "tzoof-skills",
+      "name": "capture-skill",
       "description": "Collection of reusable agent skills including session capture and workflow automation",
       "source": "./",
       "strict": false,
