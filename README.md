@@ -25,6 +25,8 @@ Or copy any skill folder directly into your agent's skills directory (e.g. `.age
 | Skill | Description |
 |---|---|
 | [`capture-skill`](./skills/capture-skill/) | Distill the current session's actions into a new, reusable agent skill |
+| [`regression-check`](./skills/regression-check/) | Analyze the current branch diff and produce a manual testing board + Playwright test plan scoped to what changed. Run before /audit. |
+| [`spec-to-monorepo`](./skills/spec-to-monorepo/) | Takes a rough AI-generated spec or plan and turns it into a working, secure, documented multi-service monorepo — architecture review, service scaffolding, cross-service wiring, Snyk scanning, and a project README + CLAUDE.md with real gotchas |
 
 ## Creating Your Own Skills
 

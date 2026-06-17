@@ -11,12 +11,24 @@
   "plugins": [
     {
       "name": "capture-skill",
-      "description": "Collection of reusable agent skills including session capture and workflow automation",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/capture-skill"
-      ]
+      "source": "./skills/capture-skill",
+      "description": "Command: /capture-skill — distill the current session's actions into a reusable skill or agent.",
+      "category": "universal",
+      "keywords": ["meta", "workflow", "capture", "reuse"]
+    },
+    {
+      "name": "regression-check",
+      "source": "./skills/regression-check",
+      "description": "Command: /regression-check — analyze the current branch diff and produce a manual testing board + Playwright test plan scoped to what changed.",
+      "category": "universal",
+      "keywords": ["testing", "regression", "playwright", "qa", "diff"]
+    },
+    {
+      "name": "spec-to-monorepo",
+      "source": "./skills/spec-to-monorepo",
+      "description": "Command: /spec-to-monorepo — turn a rough spec into a working, secure, documented multi-service monorepo with architecture review, scaffolding, and Snyk scanning.",
+      "category": "universal",
+      "keywords": ["monorepo", "scaffolding", "architecture", "security", "snyk"]
     }
   ]
 }
