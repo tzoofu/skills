@@ -29,6 +29,41 @@
       "description": "Command: /spec-to-monorepo — turn a rough spec into a working, secure, documented multi-service monorepo with architecture review, scaffolding, and Snyk scanning.",
       "category": "universal",
       "keywords": ["monorepo", "scaffolding", "architecture", "security", "snyk"]
+    },
+    {
+      "name": "generate-docs",
+      "source": "./skills/generate-docs",
+      "description": "Command: /generate-docs — explore a codebase and generate one reference doc per major subsystem under docs/, then wire them into CLAUDE.md with a reference table.",
+      "category": "universal",
+      "keywords": ["docs", "documentation", "subsystems", "architecture", "onboarding"]
+    },
+    {
+      "name": "quick-codex-pet",
+      "source": "./skills/quick-codex-pet",
+      "description": "Create a Codex custom pet package quickly from a person or character reference image, including pet.json and spritesheet.webp.",
+      "category": "universal",
+      "keywords": ["codex", "pet", "spritesheet", "imagegen", "chibi"]
+    },
+    {
+      "name": "clean-branch-history",
+      "source": "./skills/clean-branch-history",
+      "description": "Command: /clean-branch-history — untangle a contaminated or stale feature branch into a single clean commit on a fresh base, with diff verification before a safe force-push.",
+      "category": "universal",
+      "keywords": ["git", "cleanup", "squash", "rebase", "history"]
+    },
+    {
+      "name": "squash-unpushed-commits",
+      "source": "./skills/squash-unpushed-commits",
+      "description": "Command: /squash-unpushed-commits — squash every local commit ahead of the remote tracking branch into one commit with a given message, no rebase or force-push needed.",
+      "category": "universal",
+      "keywords": ["git", "squash", "commits", "cleanup", "unpushed"]
+    },
+    {
+      "name": "solid-audit-refactor",
+      "source": "./skills/solid-audit-refactor",
+      "description": "Command: /solid-audit-refactor — audit a codebase (or a scoped area) against SOLID/DRY and its own documented conventions, implement a user-scoped refactor of the confirmed violations, and verify with the project's own gates (lean) or a two-track adversarial regression pass (thorough).",
+      "category": "universal",
+      "keywords": ["solid", "refactor", "audit", "dry", "regression", "quality"]
     }
   ]
 }
