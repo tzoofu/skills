@@ -134,7 +134,7 @@ Frontmatter:
 ---
 name: <kebab-case>
 description: Use this agent when [trigger context]. Examples: <example>Context: <realistic scenario> user: '<example prompt>' assistant: 'I'll use the <name> agent — <why>' <commentary><why this is the right fit></commentary></example>
-model: sonnet | haiku
+model: inherit | haiku | sonnet | opus
 color: <green | blue | cyan | yellow | purple | red | orange | pink>
 tools: <comma-separated allowlist>
 ---
@@ -145,8 +145,11 @@ tools: <comma-separated allowlist>
 - **`description`** must be **trigger-rich**: include 1–2 `<example>` blocks with realistic user prompts. Claude uses this to decide when to invoke the agent. A bare description without examples often won't auto-trigger.
 - **`tools`** is an **allowlist** — the agent cannot use anything not listed. Explicitly OMIT tools that would let the agent do things the workflow shouldn't (e.g. omit `Edit`/`Write` for read-only audits to structurally enforce read-only). Never include `Agent` unless you genuinely want sub-delegation.
 - **`model`**:
+  - `inherit` — use the caller's model (default when unsure)
   - `haiku` — fast mechanical work (batched edits, simple verifications)
   - `sonnet` — workflows needing judgment (rule audits, code review, planning)
+  - `opus` — the hardest multi-step reasoning (architecture, deep debugging, adversarial review)
+  - Use aliases, never pinned IDs like `claude-opus-5-5`, so agents pick up new model releases without edits.
 
 Body structure:
 

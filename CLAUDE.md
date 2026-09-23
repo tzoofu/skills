@@ -4,58 +4,55 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Repo Is
 
-A public catalog of reusable [Agent Skills](https://agentskills.io) published to [skills.sh](https://skills.sh) under `tzoof/skills`. It is not a runnable application — consumers install skills via `npx skills add tzoof/skills` or `/plugin marketplace add tzoof/skills` in Claude Code.
+A public catalog of reusable [Agent Skills](https://agentskills.io) published under `tzoof/skills`. It is not a runnable application: there is no build, lint, or test suite. Consumers install skills via `/plugin marketplace add tzoof/skills` (Claude Code) or `npx skills add tzoof/skills` (other agents).
 
 ## Structure
 
 ```
-skills/                          # one folder per skill
-  <name>/SKILL.md
+skills/<name>/SKILL.md           # one folder per skill; each skill is its own plugin
 template/SKILL.md                # blank starting point for new skills
-.claude-plugin/marketplace.json  # skills.sh discovery manifest
+.claude-plugin/marketplace.json  # marketplace manifest: one plugin entry per skill
+README.md                        # public Skills table
 ```
 
-## Adding a Skill
+A skill folder may also carry a `commands/<name>.md` slash-command variant (see `skills/spec-to-monorepo/`).
 
-Every new skill requires two things kept in sync:
+## Adding or Renaming a Skill
 
-1. **`skills/<name>/SKILL.md`** — the skill content
-2. **`.claude-plugin/marketplace.json`** — add the path to the `skills` array of the relevant plugin collection
+Three files must stay in sync. Skipping one means the skill is either undiscoverable or undocumented:
 
-### SKILL.md format
+1. **`skills/<name>/SKILL.md`**: the skill content. The folder name, the frontmatter `name`, and the plugin `name` must all match.
+2. **`.claude-plugin/marketplace.json`**: append an entry to the `plugins` array:
+   ```json
+   {
+     "name": "<name>",
+     "source": "./skills/<name>",
+     "description": "Command: /<name> — <one-sentence summary>",
+     "category": "universal",
+     "keywords": ["...", "..."]
+   }
+   ```
+   Begin `description` with `Command: /<name> — ` when the skill is user-invoked (`disable-model-invocation: true`). Model-invoked skills like `quick-codex-pet` omit that prefix.
+3. **`README.md`**: add a row to the Skills table, keeping it alphabetical:
+   ```
+   | [`<name>`](./skills/<name>/) | One sentence description |
+   ```
 
-Only `name` and `description` are required in frontmatter:
-
-```yaml
----
-name: kebab-case-name
-description: What this skill does and when to trigger it. This drives auto-activation.
----
-```
-
-Copy `template/SKILL.md` as a starting point.
-
-### marketplace.json
-
-Add the new skill path to the `skills` array of the matching plugin entry (or create a new plugin entry if it belongs to a different collection):
-
-```json
-"skills": [
-  "./skills/existing-skill",
-  "./skills/new-skill"
-]
-```
-
-Validate JSON before committing:
+Validate the manifest after editing:
 
 ```bash
 python3 -m json.tool .claude-plugin/marketplace.json > /dev/null
 ```
 
-### README.md
+## SKILL.md Conventions
 
-Add a row to the Skills table:
+Only `name` and `description` are required by the spec. The existing skills follow these conventions:
 
-```
-| [`<name>`](./skills/<name>/) | One sentence description |
-```
+- **`description`** drives auto-activation, so say both what the skill does and when to trigger it. Quote it if it contains `:` or `"`.
+- **`disable-model-invocation: true`** on workflow skills that should only run as an explicit `/command`. Most skills here use it.
+- **`argument-hint`** documents the slash-command arguments, e.g. `<path or module to audit — optional>`.
+- **`allowed-tools`** is a tight allowlist, including specific MCP tool names when needed (e.g. `mcp__playwright__browser_*`, Context7, Snyk).
+- The body is organized as numbered `## Step N:` sections. Keep skills well under ~200 lines.
+- Never pin model IDs (`claude-opus-5-5`) in skills or generated agent frontmatter. Use the aliases `inherit`/`haiku`/`sonnet`/`opus`.
+
+`skills/capture-skill/SKILL.md` is the meta-skill that writes new skills into this repo. Keep its instructions consistent with this file when conventions change.
