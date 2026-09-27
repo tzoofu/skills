@@ -73,7 +73,7 @@
     {
       "name": "solid-audit-refactor",
       "source": "./skills/solid-audit-refactor",
-      "description": "Command: /solid-audit-refactor — audit a codebase (or a scoped area) against SOLID/DRY and its own documented conventions, implement a user-scoped refactor of the confirmed violations, and verify with the project's own gates (lean) or a two-track adversarial regression pass (thorough).",
+      "description": "Command: /solid-audit-refactor — audit a codebase (or a scoped area) against SOLID/DRY and its own documented conventions, implement a user-approved refactor of the confirmed violations, and verify with the project's own gates plus a bug-class sweep (lean) or a two-track adversarial regression pass (thorough). Use when a working codebase has grown duplicated or diverged logic, god classes, or drift from its own documented conventions.",
       "category": "universal",
       "keywords": ["solid", "refactor", "audit", "dry", "regression", "quality"]
     },
