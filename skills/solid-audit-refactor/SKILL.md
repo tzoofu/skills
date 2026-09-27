@@ -1,34 +1,54 @@
 ---
 name: solid-audit-refactor
-description: "Audit a codebase (or a scoped area of it) against SOLID/DRY and its own documented conventions, implement a user-scoped refactor of the confirmed violations, and verify with the project's own gates or a two-track adversarial regression pass."
+description: "Audits a codebase (or a scoped area of it) against SOLID/DRY and its own documented conventions, implements a user-approved refactor of the confirmed violations, and verifies it with the project's own gates plus a bug-class sweep (lean) or a two-track adversarial regression pass (thorough). Use when a working codebase has grown duplicated or diverged logic, god classes, or drift from its own documented conventions."
 argument-hint: <path or module to audit — optional, defaults to the whole repo>
 allowed-tools: Agent, AskUserQuestion, Read, Edit, Write, Bash, Grep, Glob
 disable-model-invocation: true
+effort: high
 ---
 
 # SOLID Audit → Pragmatic Refactor → Regression Pass
 
-Audits the target codebase for SOLID/DRY violations with concrete evidence, lets the user
-choose how aggressive the fix should be, implements a minimal-diff refactor that respects the
-project's documented conventions, and closes with a regression review. Designed for
-codebases that are functionally solid but grew duplication and god classes organically.
+Audits the target codebase for SOLID/DRY violations with concrete evidence, implements a
+minimal-diff refactor that respects the project's documented conventions, and closes with a
+regression review. Designed for codebases that are functionally solid but grew duplication
+and god classes organically.
 
-## Step 0: Choose audit mode
+Copy this checklist into your response and tick it off as you go — every step is required in
+both modes:
 
-Ask (`AskUserQuestion`) — skip this ask if the user's request already implies one (e.g. "quick
-pass over X" → Lean; "full SOLID audit" / whole unfamiliar repo / high-risk area → Thorough):
+```
+Audit progress:
+- [ ] 0. Mode + scope chosen
+- [ ] 1. Baseline captured (before any edit); audit agents launched; every finding re-read
+- [ ] 2. Findings triaged into in-scope batches + deferred list
+- [ ] 3. Plan approved
+- [ ] 4. Implemented shared code → call sites, bug-class sibling sweep per fix
+- [ ] 5. Tests for extracted logic
+- [ ] 6. Gates pass + bug-class sweep loop clean
+- [ ] 7. Doc sweep for deleted/renamed symbols; final report
+```
 
-- **Lean** (recommended for a scoped area, a codebase you already know well, or a fast
-  "tidy this up" ask): single audit agent, you personally verify every finding, skip the
-  separate Plan-agent design step, verify with the project's own build/lint/test gates.
-- **Thorough** (recommended for a whole-codebase sweep, an unfamiliar repo, or a high-risk
-  change): parallel Explore agents by layer, an explicit refactor-depth choice, a dedicated
-  Plan agent for design, and a two-track adversarial regression pass at the end.
+## Step 0: Choose mode and scope
 
-Both modes share the same backbone (audit → verify → plan → approve → implement → test →
-regress → close out) and the same non-negotiables: ground the audit in the project's own
-documented conventions, never trust a finding you haven't personally confirmed against the
-current source, and never implement before the user has approved a concrete plan.
+These are **two independent choices** — ask both in one `AskUserQuestion` call (skip either
+when the request already implies it):
+
+- **Scope** — which part of the repo to audit (a path/module, a layer, or the whole repo).
+  Scope decides audit *breadth*: how many audit agents to launch in Step 1.
+- **Mode** — how much *rigor* to spend on design and verification:
+  - **Lean** (recommended when the user knows the codebase or wants a fast pass): you write
+    the plan yourself and verify with the project's own gates plus the bug-class sweep.
+  - **Thorough** (recommended for an unfamiliar repo or a high-risk change): adds a
+    refactor-depth choice, a dedicated Plan agent, and a two-track adversarial regression
+    pass. See [thorough.md](thorough.md) — load it only in this mode.
+
+Lean + whole repo is a valid combination: it still fans out by layer in Step 1, it just skips
+the Plan agent and the adversarial tracks.
+
+Non-negotiables in both modes: ground the audit in the project's own documented conventions,
+never trust a finding you haven't personally confirmed against the current source, and never
+implement before the user has approved a concrete plan.
 
 ## Step 1: Evidence-gathering audit
 
@@ -37,146 +57,117 @@ conventions from accidental debt, and gives the audit something concrete to chec
 against (a documented "always route through X" rule is a much stronger finding than a generic
 DRY nit).
 
-**Thorough:** launch 1–3 `Explore` agents in one message, split by layer (e.g.
-services/managers vs UI/entry-points). **Lean:** launch a single `code-reviewer` (or
-`Explore`) agent scoped to the target area, asked to ground findings in the project's own
-conventions and rank them most-important-first (8–15 substantive findings, not an exhaustive
-nitpick list). Either way, each agent must report with `file:line`:
+**Capture the clean-tree baseline now, before any edit**: run the project's type-check/build
+and test gates and save their output (error list, warning count, pass/fail counts). Every
+later "did I break this?" is only meaningful against this snapshot. If the baseline already
+has failures, record them and check `git log -p` on the failing test's subject for the cause.
+Fix one only when it's clearly a stale test left behind by a deliberate code change **and**
+you're touching that file anyway; otherwise report it as pre-existing and leave it alone.
 
-- **God classes**: classes mixing persistence + business logic + system callbacks + UI.
+Launch audit agents in one message: **1 agent for a scoped area, 1–3 split by layer** (e.g.
+server/data vs UI vs scripts) for a wide scope. Use `Explore` by default — the harness's Plan
+Mode only allows Explore agents during research; `code-reviewer` is fine outside Plan Mode.
+Ask each agent to rank 8–15 substantive findings most-important-first (not a nitpick list),
+each with `file:line`, a short quoted snippet, a concrete failure scenario, and whether it's a
+real bug or pure duplication:
+
 - **Duplicated logic**: the same function/check copy-pasted across files — and critically,
   whether the copies have **diverged** (a missing guard in one copy is a real bug, not style).
-  For anything reported as a duplicate, search by **value/content, not just symbol name**, and
-  outside the obvious layer too — a fourth copy often hides in a utility/renderer/script dir
-  under a different name.
-- **Scattered constants**: shared string keys/IDs re-declared or re-typed as literals per file
-  (SharedPreferences keys, notification IDs, action strings, env names).
-- **Dependency shape**: what each class constructs inline vs receives; existing abstractions.
-- **Test coverage**: what is/isn't unit-testable and why.
+  Search by **value/content, not just symbol name**, and outside the obvious layer too — a
+  fourth copy often hides in a utility/renderer/script dir under a different name.
+- **Rule drift**: code that breaks a convention the project's own docs/rules state.
+- **God classes/modules**: persistence + business logic + system callbacks + UI mixed together.
+- **Scattered constants**: shared keys/IDs/magic numbers re-typed as literals per file.
+- **Dependency shape** and **test coverage**: what's constructed inline vs injected; what
+  pure logic is trapped in an untestable module.
 
-Then — **both modes, non-skippable** — personally re-read every finding's actual file before
-building on it. An agent's summary describes what it *believes* it found, not verified ground
-truth; a finding whose line number or exact behavior doesn't match the current source doesn't
-survive into the plan. Drop or correct anything that doesn't hold up under a real read.
+Then **personally re-read every finding's actual file before building on it**. An agent's
+summary describes what it *believes* it found; a finding whose line or behavior doesn't match
+the current source doesn't survive into the plan. Prefer LSP (`findReferences`) over grep for
+"is this dead code / who calls this" claims.
 
-While agents run, get project scale yourself (`find ... | xargs wc -l | sort -rn`), and
-**capture the clean-tree baseline now, before any edit**: save lint/type-check/build output
-(error list, warning count) to a scratch file. Every later "did I break this?" diff is only
-meaningful against this snapshot — capturing it after edits begin is too late. (Lean mode on
-a small scoped area can substitute the project's own already-documented zero-warning/expected-
-warnings policy for this baseline, if one exists — no need to hand-capture what's already
-written down.)
+## Step 2: Triage
 
-## Step 2: Ask the user for depth (Thorough) / go straight to planning (Lean)
+**Thorough:** first ask the refactor-depth question in [thorough.md](thorough.md).
 
-**Thorough:** use `AskUserQuestion` with these standard options (recommend the first for
-small/solo projects):
+Both modes: order the verified findings cheapest/lowest-risk first. If there are more than
+~15, don't try to do them all in one pass — split them into:
 
-1. **Pragmatic cleanup** — centralize constants, extract shared helpers/pure decision
-   functions, fix behavioral divergences. No new interfaces or DI framework.
-2. **Medium restructure** — pragmatic + split god classes, repository abstraction.
-3. **Full architecture** — interfaces everywhere, DI framework, use-case layer.
-
-Also ask whether to add unit tests for newly extracted pure logic. Warn when full SOLID would
-be over-engineering for the codebase size.
-
-**Lean:** skip this ask — verified findings are already concrete, scoped fixes (not an
-architecture choice), so proceed straight to Step 3 with all of them included, ordered
-cheapest/lowest-risk first.
+- **Batch A — real bugs in diverged copies** (a guard missing in one copy, data loss,
+  security gaps), and
+- **Batch B — DRY consolidation** (no behavior change beyond what's called out), plus
+- **Deferred, with a reason each**: high blast radius (god-file splits), needs a policy
+  decision from the user, or needs live data/devices to validate.
 
 ## Step 3: Design and get approval
 
-**Thorough:** launch a `Plan` agent (see below), then spot-verify its output yourself.
-**Lean:** you already hold full context from Step 1 — write the plan directly rather than
-dispatching a separate agent for it. Either way the plan must contain: a **Context** section
-(why this pass, what prompted it), the verified findings ranked most-important-first (each
-with file:line, the failure scenario, and a concrete fix), the exact files touched, and a
-verification section listing the project's own build/test/lint commands in their documented
-order. If the harness's Plan Mode is active, write this to the plan file and use its native
-approval flow (`ExitPlanMode`); otherwise present the plan as text and get explicit
-`AskUserQuestion`/confirmation before touching any code. Do not implement before approval.
+**Lean:** you already hold full context — write the plan yourself. **Thorough:** use the
+Plan-agent flow in [thorough.md](thorough.md), then spot-verify its output yourself.
 
-### Thorough: Plan-agent design detail
-
-Launch a `Plan` agent with: the audit findings (verbatim, with line numbers), the user's depth
-choice, and the explicit constraint list of conventions that must NOT change. Require from it:
-new file names + API sketches, per-file call-site changes, deliberate behavior changes called
-out separately, edge-case "must-not-change" checklist, test cases, verification commands.
-
-When splitting design across **multiple Plan agents**, assign cross-cutting infrastructure
-(test-runner setup, tooling tasks, the shared-constants module's home) to exactly one agent
-and tell the others to reference it — otherwise both spec it and you reconcile by hand.
-If an agent dies mid-run (session limit, API error), **resume it** rather than relaunching:
-its partial verification work survives; a fresh launch repeats it.
-
-Before finalizing: **read the riskiest call sites yourself** to confirm the plan's claims
-(guards it says are missing, ordering quirks it says exist), and **byte-compare each "copy"
-slated for unification** — a lookalike whose values genuinely differ (a denser variant, a
-different cap) is not a copy; keep it local and record it as a deliberate non-unification
-rather than force-unifying or silently changing it. If the repo changed mid-planning
-(`git log`), re-check the plan against the new commits and patch it.
+The plan must contain: a **Context** section (why this pass, the baseline), the in-scope
+findings ranked (each with file:line, failure scenario, concrete fix), the deferred list with
+reasons, the files touched, and a verification section with the project's own gates in their
+documented order. If Plan Mode is active, write it to the plan file and use `ExitPlanMode`;
+otherwise present it and get explicit confirmation. Do not implement before approval.
 
 ## Step 4: Implement — shared code first, then call sites
 
-1. Create all new shared files first (constants object, permission/validation gate, pure
-   decision functions as `internal` for testability, shared builders). Pure functions take
-   plain values in and return sealed-type decisions out — callers execute the decision their
-   own way, so caller-specific mechanics (which start method, optimistic writes) stay put.
+1. Create all new shared files first (constants, validation gate, pure decision functions,
+   shared builders). Pure functions take plain values in and return decisions out — callers
+   execute the decision their own way, so caller-specific mechanics stay put.
 2. Convert call sites **one file at a time**, applying all changes to that file in one pass.
 3. Preserve exact semantics on mechanical moves: key strings byte-identical, same defaults,
-   same branch order — except the deliberate changes the plan lists.
-4. Compile after the sweep (`compileDebugKotlin` / `tsc` / equivalent) before writing tests.
+   same branch order, same call order — except the deliberate changes the plan lists.
+   **Response shapes count too:** when an extracted helper's result replaces a value the
+   caller serializes to a client (HTTP/MCP JSON, CLI output, an event payload), compare the
+   serialized shape before and after — a helper that returns a "cleaner" object can silently
+   drop a field an external client reads.
+4. **Bug-class sibling sweep, per fix.** Every time you fix a real bug, name its pattern in
+   one line (e.g. "date formatted without a pinned timezone", "fetch result used without an
+   `ok` check", "read-then-rewrite of an array field") and grep the whole repo for that
+   pattern — by value/shape, not just by the symbol you edited. Each hit is either fixed now
+   or added to the deferred list with a reason. The audit only names the copies it happened
+   to find; the pattern tells you where the rest are.
+5. Run the compile/type-check gate after the sweep, before writing tests.
 
 ## Step 5: Tests for extracted logic
 
-Match the repo's existing test conventions. Highest-value test: the full decision matrix of
-any extracted guard logic (loop over all boolean combinations), including "inconsistent state
-still does something sane" cases and any deliberate ordering decisions (encode them so drift
-fails a test). Run the whole suite and confirm the new classes actually executed
-(check test-results XML counts, not just BUILD SUCCESSFUL).
+Match the repo's existing test conventions (runner, file layout, mocking style). Highest-value
+tests: the full decision matrix of any extracted guard logic (loop over all combinations),
+"inconsistent state still does something sane" cases, and any deliberate ordering decision
+(encode it so drift fails a test). When a fix changes an existing test's mocking boundary
+(e.g. a call site now goes through a use case), move the mock to the new boundary rather
+than mocking deeper internals. Confirm the new tests actually ran from the runner's own
+pass/fail counts, not just a zero exit code.
 
 ## Step 6: Regression pass
 
-**Lean:** run the project's own documented verification gates, in their documented order
-(cheapest first — e.g. a project's own `build.md`/CLAUDE.md rule file often specifies this
-exactly), and confirm real pass/fail from the actual output — test-result XML counts or
-equivalent, not just a zero exit code or "BUILD SUCCESSFUL." Cross-check the project's own
-list of already-expected/documented warnings so you don't misreport a known, accepted warning
-as a new regression. This substitutes for Track A/B below when the change is small and scoped
-enough that a full adversarial pass would be overkill; escalate to Thorough's two tracks if
-anything in Step 1 hinted at wider blast radius than expected.
+Both modes:
 
-**Thorough (two independent tracks, in parallel):**
+1. Run the project's own documented gates in their documented order (cheapest first) and
+   compare against the Step 1 baseline: zero new type/compile errors, zero new warnings, test
+   counts up by exactly the tests you added, no previously passing test now failing. Don't
+   report a baseline warning or failure as a regression.
+2. **Bug-class sweep loop:** re-run every pattern grep from Step 4.4, plus a grep for every
+   old name/literal you consolidated. Fix anything new, re-run, and repeat until every hit is
+   either the new central definition, fixed, or on the deferred list. Only then move on.
 
-**Track A — adversarial review agent** (`code-reviewer` or similar, read-only): give it the
-exact refactor intent, the list of deliberate behavior changes (so it doesn't flag them), and
-category-by-category hunting instructions: key-spelling drift vs `git show HEAD:`, semantic
-drift in extracted helpers, lost call-site behavior line-by-line, edge semantics of new guards,
-missed call sites, unused imports. Tell it to be adversarial and report file:line + severity.
+**Thorough:** additionally run the two-track pass in [thorough.md](thorough.md).
 
-**Track B — your own mechanical checks**:
-- Byte-compare every migrated constant value against `git show HEAD:<file>` in a shell loop.
-- Grep-sweep for leftover literals/old const names/duplicate checks — expect hits only in the
-  new central file. Sweep by **value** too (the alphabet string, the color pair, the magic
-  number), repo-wide: name-based greps miss copies that renamed the symbol.
-- Full recompile with `--rerun-tasks`; require zero **new** warnings vs the Step 1 baseline.
-- For any newly added guard, verify UI reachability: is the new "blocked" branch actually
-  reachable, or already gated upstream? (Prevents silently stranding a user path.)
-- **"Behavior-preserving" also preserves latent bugs.** For every moved/extracted write that
-  must satisfy an external validator (DB security rules, schema constraints, API contracts),
-  check it against the *deployed* validator config and against legacy/edge data shapes
-  (absent fields, empty arrays — e.g. an `arrayRemove` on a field older docs never had).
-  Report what you find as **pre-existing findings**, don't silently carry it forward: the
-  refactor gets blamed for whatever breaks next, even bugs it faithfully preserved.
-
-## Step 7: Fix findings and close out
+## Step 7: Close out
 
 Fix real regressions and refactor-introduced nits; leave the user's own concurrent edits
-alone. Re-run build + tests. Update CLAUDE.md wherever it documented the old duplication as
-convention, and update any other doc the change made stale (e.g. a hard-coded test-count
-comment in a build rule file). Final report: what changed, deliberate behavior changes, what
-was deliberately NOT done, and a manual/on-device (or otherwise untestable-by-CI) verification
-checklist for paths the test suite can't cover. Do not commit unless asked.
+alone. Re-run the gates. Then:
+
+- **Doc sweep:** grep the project's docs (CLAUDE.md, `docs/`, rule files) for every deleted
+  file, renamed/removed symbol, and renamed event/key — deleted code tends to leave stale
+  references behind. Update CLAUDE.md wherever it documented the old duplication as a
+  convention.
+- **Final report:** what changed (grouped by batch), deliberate behavior changes, the deferred
+  list, pre-existing issues found but not fixed, and a manual verification checklist for
+  paths the test suite can't cover.
+
+Do not commit unless asked; follow the project's own staging/commit policy.
 
 ## Task
 
