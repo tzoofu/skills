@@ -104,6 +104,48 @@
       "description": "Command: /bug-bounty — audit a codebase for real, substantiated bugs using parallel specialized agents, rigorously verify every finding, then optionally plan and execute the fixes via parallel scoped implementation agents.",
       "category": "universal",
       "keywords": ["bug", "audit", "review", "security", "parallel-agents", "fix"]
+    },
+    {
+      "name": "claude-cli",
+      "source": "./skills/claude-cli",
+      "description": "Delegate coding tasks to the Claude Code CLI, then review changes, run validation and send corrective follow-ups.",
+      "category": "universal",
+      "keywords": ["claude-code", "delegate", "cli", "agents"]
+    },
+    {
+      "name": "codex-delegate",
+      "source": "./skills/codex-delegate",
+      "description": "Command: /codex-delegate — hand edits, reviews, plans or parallel worktree tasks to OpenAI Codex CLI on the ChatGPT plan, pick model and effort, then verify the result.",
+      "category": "universal",
+      "keywords": ["codex", "chatgpt", "openai", "delegate", "review"]
+    },
+    {
+      "name": "cursor-delegate",
+      "source": "./skills/cursor-delegate",
+      "description": "Command: /cursor-delegate — hand a scoped coding task to a headless Cursor agent, pick a model, then verify the result.",
+      "category": "universal",
+      "keywords": ["cursor", "delegate", "cursor-agent", "models"]
+    },
+    {
+      "name": "cursor-parallel",
+      "source": "./skills/cursor-parallel",
+      "description": "Command: /cursor-parallel — run several Cursor CLI tasks in parallel in isolated git worktrees, then verify and merge.",
+      "category": "universal",
+      "keywords": ["cursor", "parallel", "worktree", "agents"]
+    },
+    {
+      "name": "cursor-review",
+      "source": "./skills/cursor-review",
+      "description": "Command: /cursor-review — read-only second opinion, plan, or review from a different model family via the Cursor CLI.",
+      "category": "universal",
+      "keywords": ["cursor", "review", "plan", "second-opinion"]
+    },
+    {
+      "name": "ollama-delegate",
+      "source": "./skills/ollama-delegate",
+      "description": "Command: /ollama-delegate — hand a scoped edit or read-only review to a local Ollama model via headless Claude Code in --bare mode, then verify the result.",
+      "category": "universal",
+      "keywords": ["ollama", "local-models", "qwen", "delegate"]
     }
   ]
 }
