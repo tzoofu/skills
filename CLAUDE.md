@@ -9,20 +9,23 @@ A public catalog of reusable [Agent Skills](https://agentskills.io) published un
 ## Structure
 
 ```
-skills/<name>/SKILL.md           # one folder per skill; each skill is its own plugin
-template/SKILL.md                # blank starting point for new skills
-.claude-plugin/marketplace.json  # marketplace manifest: one plugin entry per skill
-README.md                        # public Skills table
+groups/<plugin>/skills/<name>/SKILL.md   # grouped skills: one plugin folder per group
+skills/<name>/SKILL.md                   # standalone skills: each is its own plugin
+template/SKILL.md                        # blank starting point for new skills
+.claude-plugin/marketplace.json          # marketplace manifest: one entry per group or standalone skill
+README.md                                # public catalog: one section per group + standalone table
 ```
 
-A skill folder may also carry a `commands/<name>.md` slash-command variant (see `skills/spec-to-monorepo/`).
+Claude Code always shows plugin skills as `/<plugin>:<skill>`, and there is no setting to hide the prefix. A single-skill plugin therefore shows doubled (`/capture-skill:capture-skill`), so related skills are grouped: group `delegate` with skill `cursor` shows as `/delegate:cursor`. Leave always-on rule skills and one-offs standalone.
+
+**A plugin source folder is auto-scanned.** A `skills` list in a marketplace entry does NOT restrict what loads. Never point a group's `source` at a folder that also holds other skills or a `commands/` folder: everything in it loads and shows up, often duplicated. A group folder contains only `skills/<name>/` for that group's skills; no `commands/`, no stray skills.
 
 ## Adding or Renaming a Skill
 
-Three files must stay in sync. Skipping one means the skill is either undiscoverable or undocumented:
+Standalone skill: three files must stay in sync.
 
 1. **`skills/<name>/SKILL.md`**: the skill content. The folder name, the frontmatter `name`, and the plugin `name` must all match.
-2. **`.claude-plugin/marketplace.json`**: append an entry to the `plugins` array:
+2. **`.claude-plugin/marketplace.json`**: append an entry (edit the JSON as text so unrelated entries are not reformatted):
    ```json
    {
      "name": "<name>",
@@ -33,15 +36,42 @@ Three files must stay in sync. Skipping one means the skill is either undiscover
    }
    ```
    Begin `description` with `Command: /<name> — ` when the skill is user-invoked (`disable-model-invocation: true`). Model-invoked skills like `quick-codex-pet` omit that prefix.
-3. **`README.md`**: add a row to the Skills table, keeping it alphabetical:
-   ```
-   | [`<name>`](./skills/<name>/) | One sentence description |
-   ```
+3. **`README.md`**: add a row to the standalone table, keeping it alphabetical.
 
-Validate the manifest after editing:
+Grouped skill: add `groups/<plugin>/skills/<name>/SKILL.md` (folder name == frontmatter `name`; do not repeat the group word in the name). The group's marketplace entry (`{name, source: "./groups/<plugin>", description, category, keywords, "strict": false}`, no `skills` list) picks it up automatically; update its description and add a row to the group's README section.
+
+Slash references: inside skills write `/<plugin>:<name>` (for example `/delegate:cursor`). If a skill calls a skill in a different plugin, say so in the skill and the README, and note that both plugins must be installed. Prefer putting tightly coupled skills in the same group.
+
+Validate after editing:
 
 ```bash
 python3 -m json.tool .claude-plugin/marketplace.json > /dev/null
+git diff --check
+claude plugin validate .
+for g in groups/*/; do claude plugin validate "$g"; done
+```
+
+Consistency check (prints nothing when everything lines up):
+
+```bash
+python3 - <<'PY'
+import json, os, glob, re
+m = json.load(open('.claude-plugin/marketplace.json'))
+sources = [os.path.normpath(p['source']) for p in m['plugins']]
+for src in sources:
+    if not os.path.isdir(src): print('missing source:', src)
+dirs = glob.glob('skills/*/') + glob.glob('groups/*/skills/*/')
+for d in dirs:
+    d = os.path.normpath(d)
+    if not any(d == s or d.startswith(s + os.sep) for s in sources): print('uncovered skill:', d)
+    f = os.path.join(d, 'SKILL.md')
+    if not os.path.isfile(f): print('no SKILL.md:', d); continue
+    n = re.search(r'^name:\s*(.+)$', open(f).read(), re.M)
+    if not n or n.group(1).strip().strip('"\'') != os.path.basename(d): print('name mismatch:', d)
+for g in glob.glob('groups/*/'):
+    for e in os.listdir(g):
+        if e != 'skills': print('unexpected in group:', os.path.join(g, e))
+PY
 ```
 
 ## SKILL.md Conventions

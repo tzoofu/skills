@@ -122,7 +122,7 @@ Docs generated:
 
 CLAUDE.md updated with reference table.
 
-To keep docs fresh: re-run /generate-docs after major subsystem changes.
+To keep docs fresh: re-run /generate-docs:generate-docs after major subsystem changes.
 ```
 
 ---
