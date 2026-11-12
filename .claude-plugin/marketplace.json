@@ -17,13 +17,6 @@
       "keywords": ["meta", "workflow", "capture", "reuse"]
     },
     {
-      "name": "regression-check",
-      "source": "./skills/regression-check",
-      "description": "Command: /regression-check — analyze the current branch diff and produce a manual testing board + Playwright test plan scoped to what changed.",
-      "category": "universal",
-      "keywords": ["testing", "regression", "playwright", "qa", "diff"]
-    },
-    {
       "name": "spec-to-monorepo",
       "source": "./skills/spec-to-monorepo",
       "description": "Command: /spec-to-monorepo — turn a rough spec into a working, secure, documented multi-service monorepo with architecture review, scaffolding, and Snyk scanning.",
@@ -57,34 +50,6 @@
       "keywords": ["codex", "pet", "spritesheet", "imagegen", "chibi"]
     },
     {
-      "name": "clean-branch-history",
-      "source": "./skills/clean-branch-history",
-      "description": "Command: /clean-branch-history — untangle a contaminated or stale feature branch into a single clean commit on a fresh base, with diff verification before a safe force-push.",
-      "category": "universal",
-      "keywords": ["git", "cleanup", "squash", "rebase", "history"]
-    },
-    {
-      "name": "squash-unpushed-commits",
-      "source": "./skills/squash-unpushed-commits",
-      "description": "Command: /squash-unpushed-commits — squash every local commit ahead of the remote tracking branch into one commit with a given message, no rebase or force-push needed.",
-      "category": "universal",
-      "keywords": ["git", "squash", "commits", "cleanup", "unpushed"]
-    },
-    {
-      "name": "solid-audit-refactor",
-      "source": "./skills/solid-audit-refactor",
-      "description": "Command: /solid-audit-refactor — audit a codebase (or a scoped area) against SOLID/DRY and its own documented conventions, implement a user-approved refactor of the confirmed violations, and verify with the project's own gates plus a bug-class sweep (lean) or a two-track adversarial regression pass (thorough). Use when a working codebase has grown duplicated or diverged logic, god classes, or drift from its own documented conventions.",
-      "category": "universal",
-      "keywords": ["solid", "refactor", "audit", "dry", "regression", "quality"]
-    },
-    {
-      "name": "ui-bug-sweep",
-      "source": "./skills/ui-bug-sweep",
-      "description": "Command: /ui-bug-sweep — given a report that a UI control doesn't work, find the true root cause, generalize it into a bug signature, sweep the codebase for the same signature, fix every instance, and verify live with Playwright.",
-      "category": "universal",
-      "keywords": ["ui", "bug", "sweep", "playwright", "regression", "audit"]
-    },
-    {
       "name": "setup-cloud-routine",
       "source": "./skills/setup-cloud-routine",
       "description": "Command: /setup-cloud-routine — set up or update a claude.ai scheduled cloud routine (RemoteTrigger) for a recurring task, checking available MCP connectors and picking a live config-storage approach before writing a self-contained prompt and verifying with a manual run.",
@@ -99,53 +64,28 @@
       ]
     },
     {
-      "name": "bug-bounty",
-      "source": "./skills/bug-bounty",
-      "description": "Command: /bug-bounty — audit a codebase for real, substantiated bugs using parallel specialized agents, rigorously verify every finding, then optionally plan and execute the fixes via parallel scoped implementation agents.",
+      "name": "delegate",
+      "source": "./groups/delegate",
+      "description": "Commands: /delegate:claude, :codex, :cursor, :cursor-parallel, :cursor-review, :ollama — hand scoped work, reviews or parallel worktree tasks to another coding agent (Claude Code CLI, Codex, Cursor, local Ollama), then verify the result.",
       "category": "universal",
-      "keywords": ["bug", "audit", "review", "security", "parallel-agents", "fix"]
+      "keywords": ["delegate", "codex", "cursor", "ollama", "claude-code", "review"],
+      "strict": false
     },
     {
-      "name": "claude-cli",
-      "source": "./skills/claude-cli",
-      "description": "Delegate coding tasks to the Claude Code CLI, then review changes, run validation and send corrective follow-ups.",
+      "name": "audit",
+      "source": "./groups/audit",
+      "description": "Commands: /audit:bugs, :solid, :ui-bugs, :perf, :regression — find real bugs, SOLID/DRY drift, broken UI controls, performance problems and regression risk, then plan or apply verified fixes.",
       "category": "universal",
-      "keywords": ["claude-code", "delegate", "cli", "agents"]
+      "keywords": ["audit", "bugs", "solid", "performance", "regression", "playwright"],
+      "strict": false
     },
     {
-      "name": "codex-delegate",
-      "source": "./skills/codex-delegate",
-      "description": "Command: /codex-delegate — hand edits, reviews, plans or parallel worktree tasks to OpenAI Codex CLI on the ChatGPT plan, pick model and effort, then verify the result.",
+      "name": "git",
+      "source": "./groups/git",
+      "description": "Commands: /git:clean-history, /git:squash — untangle a contaminated branch into one clean commit, or squash unpushed local commits into one.",
       "category": "universal",
-      "keywords": ["codex", "chatgpt", "openai", "delegate", "review"]
-    },
-    {
-      "name": "cursor-delegate",
-      "source": "./skills/cursor-delegate",
-      "description": "Command: /cursor-delegate — hand a scoped coding task to a headless Cursor agent, pick a model, then verify the result.",
-      "category": "universal",
-      "keywords": ["cursor", "delegate", "cursor-agent", "models"]
-    },
-    {
-      "name": "cursor-parallel",
-      "source": "./skills/cursor-parallel",
-      "description": "Command: /cursor-parallel — run several Cursor CLI tasks in parallel in isolated git worktrees, then verify and merge.",
-      "category": "universal",
-      "keywords": ["cursor", "parallel", "worktree", "agents"]
-    },
-    {
-      "name": "cursor-review",
-      "source": "./skills/cursor-review",
-      "description": "Command: /cursor-review — read-only second opinion, plan, or review from a different model family via the Cursor CLI.",
-      "category": "universal",
-      "keywords": ["cursor", "review", "plan", "second-opinion"]
-    },
-    {
-      "name": "ollama-delegate",
-      "source": "./skills/ollama-delegate",
-      "description": "Command: /ollama-delegate — hand a scoped edit or read-only review to a local Ollama model via headless Claude Code in --bare mode, then verify the result.",
-      "category": "universal",
-      "keywords": ["ollama", "local-models", "qwen", "delegate"]
+      "keywords": ["git", "squash", "rebase", "history", "cleanup"],
+      "strict": false
     }
   ]
 }

@@ -54,7 +54,7 @@ Match the workflow against these signals:
 
 Default to **skill** when uncertain. Promote to agent later if real usage shows narrow tools / heavy output.
 
-> **Note:** Skills repos distribute only skills + commands, not agents. Agent files go to `~/.claude/agents/` (user-global) or `<repo>/.claude/agents/` (per-project) — not into the skills repo itself. If the captured artifact is **agent** or **both**, the skill portion still publishes to the skills repo; the agent ships separately.
+> **Note:** Skills repos distribute only skills, not agents. Agent files go to `~/.claude/agents/` (user-global) or `<repo>/.claude/agents/` (per-project) — not into the skills repo itself. If the captured artifact is **agent** or **both**, the skill portion still publishes to the skills repo; the agent ships separately.
 
 ## Step 3: Confirm with the user
 
@@ -77,16 +77,18 @@ Wait for confirmation or redirect.
 ## Step 4: Locate the skills repo (if shape is "skill" or "both")
 
 Find the skills repo root. Try in order:
-1. Current working directory (check for `skills/` folder and `.claude-plugin/marketplace.json`)
+1. Current working directory (check for `skills/` or `groups/` folder and `.claude-plugin/marketplace.json`)
 2. Ask the user: "Where is your skills repo?"
 
 Confirm it's valid by checking `README.md` and `.claude-plugin/marketplace.json` exist at root.
+
+Decide placement: if the new skill relates to an existing group under `groups/` (or to 2+ skills that would form one), put it in that group as `groups/<group>/skills/<name>/` and name it without repeating the group word (`fix-mr-comments` under `gitlab` becomes `fix-comments`, invoked as `/gitlab:fix-comments`). Otherwise it is standalone at `skills/<name>/`. Never create a `commands/` folder or put a second skill inside a standalone skill folder.
 
 For **agent** only: skip this step.
 
 ## Step 5: Write SKILL.md (if shape is "skill" or "both")
 
-Create `<skills-repo>/skills/<name>/SKILL.md`:
+Create `<skills-repo>/skills/<name>/SKILL.md` (standalone) or `<skills-repo>/groups/<group>/skills/<name>/SKILL.md` (grouped). The folder name and `name:` must match:
 
 ```yaml
 ---
@@ -159,17 +161,17 @@ Body structure:
 
 ## Step 7: Update README.md (if shape is "skill" or "both")
 
-Add a row to the Skills table in `<skills-repo>/README.md`:
+Standalone: add a row to the Skills table in `<skills-repo>/README.md`, in alphabetical order:
 
 ```
 | [`<name>`](./skills/<name>/) | <one sentence description> |
 ```
 
-Insert in alphabetical order.
+Grouped: add a row (`/<group>:<name>` | what it does) to that group's section instead.
 
 ## Step 8: Update marketplace.json (if shape is "skill" or "both")
 
-Read `<skills-repo>/.claude-plugin/marketplace.json`. Append to the `plugins` array:
+Read `<skills-repo>/.claude-plugin/marketplace.json`. Standalone: append to the `plugins` array (edit the JSON as text so unrelated entries are not reformatted):
 
 ```json
 {
@@ -180,6 +182,8 @@ Read `<skills-repo>/.claude-plugin/marketplace.json`. Append to the `plugins` ar
   "keywords": ["<2–5 relevant tags>"]
 }
 ```
+
+Grouped: do not add an entry; the group's existing entry (`source: ./groups/<group>`, `"strict": false`) picks the skill up automatically. Update its `description`/`keywords` if the group's scope changed. A new group needs a new entry with `"strict": false` and no `skills` list.
 
 If an entry with this name already exists, update it in place. Validate JSON after writing:
 
@@ -196,7 +200,7 @@ Captured: <name>
 Shape: skill | agent | both
 
 Files written:
-  ✅ skills/<name>/SKILL.md                 (if skill or both)
+  ✅ skills/<name>/SKILL.md or groups/<group>/skills/<name>/SKILL.md   (if skill or both)
   ✅ <agent-path>                           (if agent or both)
 
 Updated:
@@ -204,11 +208,11 @@ Updated:
   📝 .claude-plugin/marketplace.json        (if skill or both)
 
 Use it:
-  /<name>                                   (if skill or both — slash command)
+  /<name>:<name> (standalone) or /<group>:<name> (grouped)   (if skill or both)
   Task → <name>                             (if agent or both — main Claude delegates via Task tool)
 
 To share in another project:
-  Skill — copy skills/<name>/ → .claude/skills/<name>/
+  Skill — copy the skill folder → .claude/skills/<name>/ (the plain /<name> form applies once copied)
   Agent — copy <agent-path> → ~/.claude/agents/<name>.md (or <repo>/.claude/agents/<name>.md)
 ```
 
