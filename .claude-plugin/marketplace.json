@@ -74,9 +74,9 @@
     {
       "name": "audit",
       "source": "./groups/audit",
-      "description": "Commands: /audit:bugs, :solid, :ui-bugs, :perf, :regression — find real bugs, SOLID/DRY drift, broken UI controls, performance problems and regression risk, then plan or apply verified fixes.",
+      "description": "Commands: /audit:bugs, :solid, :detangle, :ui-bugs, :perf, :regression — find real bugs, SOLID/DRY drift, tangled codebase structure, broken UI controls, performance problems and regression risk, then plan or apply verified fixes.",
       "category": "universal",
-      "keywords": ["audit", "bugs", "solid", "performance", "regression", "playwright"],
+      "keywords": ["audit", "bugs", "solid", "refactor", "structure", "performance", "regression", "playwright"],
       "strict": false
     },
     {
