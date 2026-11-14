@@ -42,6 +42,7 @@ Each skill writes the brief, runs the other agent, then verifies the result itse
 | Command | What it does |
 | --- | --- |
 | [`/audit:bugs`](./groups/audit/skills/bugs/) | Audit a codebase for real, substantiated bugs using parallel specialized agents, rigorously verify every finding, then optionally plan and execute the fixes via parallel scoped implementation agents |
+| [`/audit:detangle`](./groups/audit/skills/detangle/) | Untangle a messy or AI-generated codebase without behavior changes: map real coupling (imports + git co-change), get plan approval, then reorganize into feature folders, split mixed-responsibility files, merge only true duplicates, and clean comments and tests, with typecheck/lint/tests gating every step |
 | [`/audit:perf`](./groups/audit/skills/perf/) | Audit a web/mobile app for speed and perceived performance and get a prioritized, measured action plan with code snippets |
 | [`/audit:regression`](./groups/audit/skills/regression/) | Analyze the current branch diff and produce a manual testing board + Playwright test plan scoped to what changed |
 | [`/audit:solid`](./groups/audit/skills/solid/) | Audit a codebase (or a scoped area) against SOLID/DRY and its own documented conventions, implement a user-approved refactor of the confirmed violations, and verify with the project's own gates plus a bug-class sweep (lean) or a two-track adversarial regression pass (thorough) |
